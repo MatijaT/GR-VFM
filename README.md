@@ -21,9 +21,11 @@ All simplifications and any mistakes here are mine.
 ## 1. Flow Matching and Variational Flow Matching
 
 Generative flow models learn a time-dependent vector field $v_t(x)$ whose ODE
+
 $$
 \dot x_t = v_t(x_t), \qquad x_0 \sim p_0
 $$
+
 transports a simple base distribution $p_0$ into a target data distribution $p_1$.
 
 ### Flow Matching (FM) in Euclidean space
