@@ -39,7 +39,7 @@ Work in $\mathbb{R}^d$.
 For each pair $(x_0,x_1)$ we define a **reference path** that moves the particle from $x_0$ to $x_1$:
 
 $$
-\gamma_{x_0,x_1}(t) = (1-t)\,x_0 + t\,x_1,\qquad t \in [0,1].
+\gamma_{x_0,x_1}(t) = (1-t) x_0 + t x_1,\qquad t \in [0,1].
 $$
 
 Equivalently, at the random-variable level,
@@ -105,7 +105,7 @@ Flow Matching then learns a neural vector field $v_\theta(x,t)$ that approximate
 $$
 \mathcal{L}_{\text{FM}}(\theta)
 = \mathbb{E}_{t,X_0,X_1}\left[
-  \left\|\,v_\theta(X_t,t) - u_t(X_t \mid X_1)\,\right\|^2
+  \left\| v_\theta(X_t,t) - u_t(X_t \mid X_1) \right\|^2
 \right],
 \qquad X_t = (1-t)X_0 + t X_1.
 $$
@@ -144,7 +144,7 @@ From the FM section we had the Eulerian velocity field
 
 $$
 u_t(x)
-= \mathbb{E}_{p_t(x_1 \mid x)}\big[\,u_t(x \mid x_1)\,\big],
+= \mathbb{E}_{p_t(x_1 \mid x)}\big[ u_t(x \mid x_1) \big],
 $$
 
 where $p_t(x_1 \mid x)$ is the posterior over endpoints given that the particle is at $x$ at time $t$.
@@ -175,7 +175,7 @@ Once we have $q_\phi$, we can define the model velocity field by averaging the c
 
 $$
 v_\phi(x,t)
-:= \mathbb{E}_{q_\phi(x_1 \mid x,t)}\big[\,u_t(x \mid x_1)\,\big].
+:= \mathbb{E}_{q_\phi(x_1 \mid x,t)}\big[ u_t(x \mid x_1) \big].
 $$
 
 If $q_\phi(x_1 \mid x,t)$ were equal to the true posterior $p_t(x_1 \mid x)$, then $v_\phi(x,t)$ would coincide with $u_t(x)$.
@@ -196,19 +196,19 @@ To learn $q_\phi$, VFM compares two joint distributions over $(t,x,x_1)$.
    - sampling $x_0 \sim p_0$, $x_1 \sim p_{\text{data}}$,
    - setting $x = (1-t)x_0 + t x_1$.
 
-   This defines a joint law $p(t,x,x_1) = p(t)\,p_t(x \mid x_1)\,p_{\text{data}}(x_1)$.
+   This defines a joint law $p(t,x,x_1) = p(t) p_t(x \mid x_1) p_{\text{data}}(x_1)$.
 
 2. **Variational joint**. We keep the same marginal over $(t,x)$, but we choose endpoints from the variational posterior:
    - sample $t \sim p(t)$,
    - sample $x \sim p_t(x)$,
    - sample $x_1 \sim q_\phi(x_1 \mid x,t)$.
 
-   This gives a joint $r_\phi(t,x,x_1) = p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t)$.
+   This gives a joint $r_\phi(t,x,x_1) = p(t) p_t(x) q_\phi(x_1 \mid x,t)$.
 
 The idea is that a good variational posterior should make these two joints close. VFM therefore considers the KL divergence
 
 $$
-\mathrm{KL}(p \,\Vert\, r_\phi)
+\mathrm{KL}(p  \Vert  r_\phi)
 = \mathbb{E}_{p(t,x,x_1)}\left[
   \log\frac{p(t,x,x_1)}{r_\phi(t,x,x_1)}
 \right].
@@ -218,19 +218,19 @@ Plugging in the definitions,
 
 $$
 \frac{p(t,x,x_1)}{r_\phi(t,x,x_1)}
-= \frac{p(t)\,p_t(x \mid x_1)\,p_{\text{data}}(x_1)}{p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t)}
+= \frac{p(t) p_t(x \mid x_1) p_{\text{data}}(x_1)}{p(t) p_t(x) q_\phi(x_1 \mid x,t)}
 = \frac{p_t(x_1 \mid x)}{q_\phi(x_1 \mid x,t)},
 $$
 
 so
 
 $$
-\mathrm{KL}(p \,\Vert\, r_\phi)
+\mathrm{KL}(p  \Vert  r_\phi)
 = \mathbb{E}_{p(t,x,x_1)}\left[
   \log\frac{p_t(x_1 \mid x)}{q_\phi(x_1 \mid x,t)}
 \right]
 = \mathbb{E}_{p(t,x)}\Big[
-  \mathrm{KL}\big(p_t(\cdot \mid x)\,\Vert\,q_\phi(\cdot \mid x,t)\big)
+  \mathrm{KL}\big(p_t(\cdot \mid x) \Vert q_\phi(\cdot \mid x,t)\big)
 \Big].
 $$
 
@@ -238,7 +238,7 @@ The terms involving $p_t(x_1 \mid x)$ do not depend on $\phi$, so minimizing thi
 
 $$
 \mathcal{L}_{\text{VFM}}(\phi)
-= -\,\mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
+= - \mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
 $$
 
 This is just a negative log-likelihood objective for the variational posterior, evaluated on samples $(t,x,x_1)$ drawn from the reference path construction.
@@ -283,7 +283,7 @@ $$
 \mathcal{L}_{\text{RFM}}(\theta)
 = \mathbb{E}\left[
   \left\|
-    v_\theta(x_t,t) - \frac{1}{1-t}\,\log_{x_t}(x_1)
+    v_\theta(x_t,t) - \frac{1}{1-t} \log_{x_t}(x_1)
   \right\|^2
 \right],
 $$
@@ -320,14 +320,14 @@ with mean $\mu_\phi(x,t)\in \mathcal M$.
 The variational joint is
 
 $$
-r_\phi(t,x,x_1) = p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t),
+r_\phi(t,x,x_1) = p(t) p_t(x) q_\phi(x_1 \mid x,t),
 $$
 
 and the same KL argument as in Euclidean VFM yields the RG-VFM objective
 
 $$
 \mathcal{L}_{\text{RGVFM}}(\phi)
-= -\,\mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
+= - \mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
 $$
 
 On homogeneous manifolds (ones which 'look' the same at every point) with closed-form geodesics (such as $S^2$), this simplifies to a Fréchet-type objective
@@ -348,7 +348,7 @@ For the geodesic path parameterization used in the code, this leads to
 
 $$
 v_\phi(x,t)
-= \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big),
+= \frac{1}{1-t} \log_x\big(\mu_\phi(x,t)\big),
 $$
 
 which mirrors the Euclidean formula $(\mu_\phi(x,t)-x)/(1-t)$ but in the tangent space $T_x \mathcal M$.
@@ -401,7 +401,7 @@ $$
   The corresponding vector field is then defined by  
 
 $$
-  v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big),
+  v_\phi(x,t) = \frac{1}{1-t} \log_x\big(\mu_\phi(x,t)\big),
 $$
 
   and used to sample by integrating an ODE on the sphere via the exponential map.
@@ -444,7 +444,7 @@ $$
    Because the two data clusters are very tight, this loss is minimised by predicting endpoints extremely close to the two pole centres. When the corresponding vector field  
 
 $$
-   v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big)
+   v_\phi(x,t) = \frac{1}{1-t} \log_x\big(\mu_\phi(x,t)\big)
 $$
 
    is integrated, most mass is transported very sharply onto these modes, so the samples appear as two highly concentrated regions near the poles.
