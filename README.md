@@ -1,4 +1,4 @@
-# Riemannian Gaussian Variational Flow Matching — notes on toy examples (stub)
+# Riemannian Variational Flow Matching — notes on toy examples (stub)
 
 **Status.** This repository is a small stub, not a full reproduction of the paper. It contains simple Euclidean and spherical toy examples implementing variants of Flow Matching, Riemannian Flow Matching (RFM), and an RG-VFM-style model.
 
