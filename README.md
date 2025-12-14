@@ -36,15 +36,19 @@ Work in $\mathbb{R}^d$.
 - Let $p_{\text{data}} = p_1$ be the **target distribution** we want to learn.
 - Write $X_0 \sim p_0$ and $X_1 \sim p_{\text{data}}$ for the corresponding random variables, and samples as $x_0, x_1$.
 
-For each pair $(x_0,x_1)$ we define a **reference path** that moves the particle from $x_0$ to $x_1$:
+For each pair $(x_0,x_1)$ we define a reference path that moves the particle from $x_0$ to $x_1$:
+
 $$
 \gamma_{x_0,x_1}(t) = (1-t)\,x_0 + t\,x_1,\qquad t \in [0,1].
 $$
 
+
 Equivalently, at the random-variable level,
+
 $$
 X_t = (1-t)X_0 + t X_1
 $$
+
 and the law of $X_t$ is some intermediate density $p_t$. You can picture a cloud of particles, each starting from its own $x_0$ and heading to its own $x_1$ along a straight line.
 
 ---
