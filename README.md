@@ -10,7 +10,7 @@ The goal is to develop this into a study of when these techniques are useful thr
 
 These notes follow:
 
-- **O. Zaghen, F. Eijkelboom, A. Pouplin, E. J. Bekkers**,  
+- **Olga Zaghen, Floor Eijkelboom, Alison Pouplin, Cong Liu, Max Welling, Jan-Willem van de Meent, Erik J. Bekkers**,  
   *Riemannian Variational Flow Matching for Material and Protein Design*, arXiv:2502.12981.  
   <https://arxiv.org/abs/2502.12981>
 
