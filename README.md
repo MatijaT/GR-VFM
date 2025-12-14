@@ -1,4 +1,4 @@
-# Riemannian Variational Flow Matching — notes on toy examples (stub)
+# Riemannian Gaussian Variational Flow Matching — notes on toy examples (stub)
 
 **Status.** This repository is a small stub, not a full reproduction of the paper. It contains simple Euclidean and spherical toy examples implementing variants of Flow Matching, Riemannian Flow Matching (RFM), and an RG-VFM-style model.
 
@@ -10,7 +10,7 @@ The goal is to develop this into a study of when these techniques are useful thr
 
 These notes follow:
 
-- **Olga Zaghen, Floor Eijkelboom, Alison Pouplin, Cong Liu, Max Welling, Jan-Willem van de Meent, Erik J. Bekkers**,  
+- **O. Zaghen, F. Eijkelboom, A. Pouplin, E. J. Bekkers**,  
   *Riemannian Variational Flow Matching for Material and Protein Design*, arXiv:2502.12981.  
   <https://arxiv.org/abs/2502.12981>
 
@@ -94,8 +94,8 @@ The actual drift field that transports the whole density $p_t$ is the average co
 
 $$
 u_t(x)
-= \mathbb{E}_{X_1 \sim p_t(\cdot \mid x)}\!\left[\,u_t(x \mid X_1)\,\right]
-= \mathbb{E}_{p_t(x_1 \mid x)}\!\left[
+= \mathbb{E}_{X_1 \sim p_t(\cdot \mid x)}\left[u_t(x \mid X_1)\right]
+= \mathbb{E}_{p_t(x_1 \mid x)}\left[
   \frac{x_1 - x}{1-t}
 \right].
 $$
@@ -130,15 +130,15 @@ Keep the Euclidean setup from above:
 - $X_1 \sim p_{\text{data}}$ is the data random variable.
 - For each pair $(X_0, X_1)$ we follow the straight-line path  
 
-  $$
+$$
   X_t = (1-t)X_0 + t X_1,\qquad t\in[0,1].
-  $$
+$$
 
 - For a fixed endpoint $x_1$, the conditional velocity at $(x,t)$ is  
 
-  $$
+$$
   u_t(x \mid x_1) = \frac{x_1 - x}{1-t}.
-  $$
+$$
 
 From the FM section we had the Eulerian velocity field
 
@@ -303,11 +303,11 @@ On a Riemannian manifold, a natural analogue of a Gaussian is the Riemannian Gau
 
 $$
 \mathrm{RG}(x;\mu,\sigma^2)
-\;\propto\;
-\exp\!\left(-\frac{d_g(x,\mu)^2}{2\sigma^2}\right),
+\propto
+\exp\left(-\frac{d_g(x,\mu)^2}{2\sigma^2}\right),
 $$
 
-where $d_g$ is the geodesic distance and $\mu \in \mathcal M$ -- so the shortest path on thi manifold, like $|x - \mu|$ is in Euclidean space.
+where $d_g$ is the geodesic distance and $\mu \in \mathcal M$ -- so the shortest path on this manifold, like $|x - \mu|$ is in Euclidean space.
 
 RG-VFM chooses the variational posterior to be a Riemannian Gaussian
 
@@ -382,9 +382,9 @@ The repository is organised around four small, self-contained scripts:
   Euclidean Variational Flow Matching on a 2D toy dataset.  
   Instead of predicting velocities directly, the network learns an endpoint posterior $q_\phi(x_1 \mid x,t)$ (e.g. a Gaussian with mean $\mu_\phi(x,t)$). The loss is a negative log-likelihood $-\log q_\phi(x_1 \mid x_t,t)$, and the vector field is recovered as  
 
-  $$
+$$
   v_\phi(x,t) = \frac{\mu_\phi(x,t) - x}{1-t}.
-  $$
+$$
 
 - `Riemann_FM.py`  
   Intrinsic Riemannian Flow Matching on the sphere $S^2 \subset \mathbb{R}^3$.  
@@ -394,15 +394,15 @@ The repository is organised around four small, self-contained scripts:
   RG-VFM-style endpoint model on $S^2$.  
   The network predicts endpoints $\mu_\phi(x_t,t) \in S^2$ along geodesic paths and is trained with an endpoint geodesic loss  
 
-  $$
+$$
   d_{S^2}\big(x_1,\mu_\phi(x_t,t)\big)^2.
-  $$
+$$
 
   The corresponding vector field is then defined by  
 
-  $$
+$$
   v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big),
-  $$
+$$
 
   and used to sample by integrating an ODE on the sphere via the exponential map.
 
@@ -437,15 +437,15 @@ The three panels show:
 3. **RG-VFM-style samples on $S^2$.**  
    The RG-VFM-style model predicts endpoints $\mu_\phi(x_t,t)\in S^2$ and is trained with an endpoint geodesic loss  
 
-   $$
+$$
    d_{S^2}\big(x_1,\mu_\phi(x_t,t)\big)^2.
-   $$
+$$
 
    Because the two data clusters are very tight, this loss is minimised by predicting endpoints extremely close to the two pole centres. When the corresponding vector field  
 
-   $$
+$$
    v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big)
-   $$
+$$
 
    is integrated, most mass is transported very sharply onto these modes, so the samples appear as two highly concentrated regions near the poles.
 
