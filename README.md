@@ -10,8 +10,8 @@ The goal is to develop this into a study of when these techniques are useful thr
 
 These notes follow:
 
-- **O. Zaghen, F. Eijkelboom, A. Pouplin, E. J. Bekkers**,  
-  *Towards Variational Flow Matching on General Geometries*, arXiv:2502.12981.  
+- **Olga Zaghen, Floor Eijkelboom, Alison Pouplin, Cong Liu, Max Welling, Jan-Willem van de Meent, Erik J. Bekkers**,  
+  *Riemannian Variational Flow Matching for Material and Protein Design*, arXiv:2502.12981.  
   <https://arxiv.org/abs/2502.12981>
 
 All simplifications and any mistakes here are mine.
@@ -36,12 +36,11 @@ Work in $\mathbb{R}^d$.
 - Let $p_{\text{data}} = p_1$ be the **target distribution** we want to learn.
 - Write $X_0 \sim p_0$ and $X_1 \sim p_{\text{data}}$ for the corresponding random variables, and samples as $x_0, x_1$.
 
-For each pair $(x_0,x_1)$ we define a reference path that moves the particle from $x_0$ to $x_1$:
+For each pair $(x_0,x_1)$ we define a **reference path** that moves the particle from $x_0$ to $x_1$:
 
 $$
 \gamma_{x_0,x_1}(t) = (1-t)\,x_0 + t\,x_1,\qquad t \in [0,1].
 $$
-
 
 Equivalently, at the random-variable level,
 
@@ -56,11 +55,13 @@ and the law of $X_t$ is some intermediate density $p_t$. You can picture a cloud
 #### Conditional velocity
 
 Fix an endpoint $x_1$. Imagine looking only at those particles whose final position is $x_1$ and ignoring all others. Along each such path the instantaneous velocity is
+
 $$
 \frac{d}{dt}\gamma_{x_0,x_1}(t) = x_1 - x_0.
 $$
 
 Now fix a time $t$ and a point $x$ in space. Some of the straight-line paths to $x_1$ might pass through $x$ at time $t$. For those trajectories we can solve
+
 $$
 x = (1-t)x_0 + t x_1
 \quad\Longrightarrow\quad
@@ -68,6 +69,7 @@ x_0 = \frac{x - t x_1}{1-t}.
 $$
 
 Plugging this back into $x_1 - x_0$ gives the velocity of a particle that is at position $x$ at time $t$ and will eventually end at $x_1$:
+
 $$
 u_t(x \mid x_1)
 = x_1 - x_0
@@ -83,11 +85,13 @@ We refer to this as the conditional velocity:
 #### Eulerian field as an average over endpoints
 
 At a given time $t$ and position $x$, particles can be heading to many different endpoints $x_1$. The distribution of endpoints, conditioned on the fact that the particle is at $x$ at time $t$, is the posterior
+
 $$
 p_t(x_1 \mid x) = \mathbb{P}(X_1 = x_1 \mid X_t = x).
 $$
 
 The actual drift field that transports the whole density $p_t$ is the average conditional velocity over all possible endpoints, weighted by how likely each endpoint is:
+
 $$
 u_t(x)
 = \mathbb{E}_{X_1 \sim p_t(\cdot \mid x)}\!\left[\,u_t(x \mid X_1)\,\right]
@@ -97,6 +101,7 @@ u_t(x)
 $$
 
 Flow Matching then learns a neural vector field $v_\theta(x,t)$ that approximates this $u_t(x)$ by directly regressing to the conditional velocities along the reference paths:
+
 $$
 \mathcal{L}_{\text{FM}}(\theta)
 = \mathbb{E}_{t,X_0,X_1}\left[
@@ -123,20 +128,25 @@ Keep the Euclidean setup from above:
 
 - $X_0 \sim p_0$ is the noise random variable (e.g. standard Gaussian).
 - $X_1 \sim p_{\text{data}}$ is the data random variable.
-- For each pair $(X_0, X_1)$ we follow the straight-line path
+- For each pair $(X_0, X_1)$ we follow the straight-line path  
+
   $$
   X_t = (1-t)X_0 + t X_1,\qquad t\in[0,1].
   $$
-- For a fixed endpoint $x_1$, the conditional velocity at $(x,t)$ is
+
+- For a fixed endpoint $x_1$, the conditional velocity at $(x,t)$ is  
+
   $$
   u_t(x \mid x_1) = \frac{x_1 - x}{1-t}.
   $$
 
 From the FM section we had the Eulerian velocity field
+
 $$
 u_t(x)
 = \mathbb{E}_{p_t(x_1 \mid x)}\big[\,u_t(x \mid x_1)\,\big],
 $$
+
 where $p_t(x_1 \mid x)$ is the posterior over endpoints given that the particle is at $x$ at time $t$.
 
 You can read this as: in order to know which way to push a particle at $(x,t)$, we should average the “velocity to each possible endpoint” $u_t(x \mid x_1)$, weighted by how likely it is that this particle is actually heading to $x_1$.
@@ -154,12 +164,15 @@ Fix $(x,t)$. Conceptually, $p_t(x_1 \mid x)$ answers:
 Instead of trying to model $u_t(x)$ directly, VFM proposes to model this endpoint distribution.
 
 We introduce a family of variational posteriors
+
 $$
 q_\phi(x_1 \mid x,t),
 $$
+
 parametrised by $\phi$ (e.g. a neural network that outputs the parameters of a Gaussian in $x_1$ for each $(x,t)$). Think of $q_\phi$ as the model’s best guess of “which endpoint am I heading to?” at each space–time point $(x,t)$.
 
 Once we have $q_\phi$, we can define the model velocity field by averaging the conditional velocities against this variational posterior:
+
 $$
 v_\phi(x,t)
 := \mathbb{E}_{q_\phi(x_1 \mid x,t)}\big[\,u_t(x \mid x_1)\,\big].
@@ -193,6 +206,7 @@ To learn $q_\phi$, VFM compares two joint distributions over $(t,x,x_1)$.
    This gives a joint $r_\phi(t,x,x_1) = p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t)$.
 
 The idea is that a good variational posterior should make these two joints close. VFM therefore considers the KL divergence
+
 $$
 \mathrm{KL}(p \,\Vert\, r_\phi)
 = \mathbb{E}_{p(t,x,x_1)}\left[
@@ -201,12 +215,15 @@ $$
 $$
 
 Plugging in the definitions,
+
 $$
 \frac{p(t,x,x_1)}{r_\phi(t,x,x_1)}
 = \frac{p(t)\,p_t(x \mid x_1)\,p_{\text{data}}(x_1)}{p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t)}
 = \frac{p_t(x_1 \mid x)}{q_\phi(x_1 \mid x,t)},
 $$
+
 so
+
 $$
 \mathrm{KL}(p \,\Vert\, r_\phi)
 = \mathbb{E}_{p(t,x,x_1)}\left[
@@ -218,6 +235,7 @@ $$
 $$
 
 The terms involving $p_t(x_1 \mid x)$ do not depend on $\phi$, so minimizing this KL over $\phi$ is equivalent to minimizing
+
 $$
 \mathcal{L}_{\text{VFM}}(\phi)
 = -\,\mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
@@ -235,6 +253,7 @@ Concretely, in the training loop:
 6. backpropagate this as the VFM loss.
 
 If $q_\phi$ is chosen to be a Gaussian with fixed covariance, then $-\log q_\phi(x_1 \mid x_t,t)$ is (up to constants) proportional to $\|x_1 - \mu_\phi(x_t,t)\|^2$, so VFM becomes “endpoint regression + a simple formula for the velocity field”
+
 $$
 v_\phi(x,t) = \frac{\mu_\phi(x,t) - x}{1-t}.
 $$
@@ -259,6 +278,7 @@ Intrinsic Riemannian Flow Matching:
 - trains a network $v_\theta(x,t) \in T_x \mathcal M$ with a velocity regression loss -- same as in the FM case above but now on a manifold.
 
 On $S^2$ in this repository, the RFM loss is implemented as
+
 $$
 \mathcal{L}_{\text{RFM}}(\theta)
 = \mathbb{E}\left[
@@ -267,6 +287,7 @@ $$
   \right\|^2
 \right],
 $$
+
 where $x_t$ is the geodesic interpolation between $x_0$ and $x_1$.
 
 ---
@@ -279,30 +300,38 @@ RG-VFM combines:
 - RFM’s manifold-aware geometry.
 
 On a Riemannian manifold, a natural analogue of a Gaussian is the Riemannian Gaussian
+
 $$
 \mathrm{RG}(x;\mu,\sigma^2)
 \;\propto\;
 \exp\!\left(-\frac{d_g(x,\mu)^2}{2\sigma^2}\right),
 $$
+
 where $d_g$ is the geodesic distance and $\mu \in \mathcal M$ -- so the shortest path on thi manifold, like $|x - \mu|$ is in Euclidean space.
 
 RG-VFM chooses the variational posterior to be a Riemannian Gaussian
+
 $$
 q_\phi(x_1 \mid x,t) = \mathrm{RG}\big(x_1; \mu_\phi(x,t), \sigma^2\big)
 $$
+
 with mean $\mu_\phi(x,t)\in \mathcal M$.
 
 The variational joint is
+
 $$
 r_\phi(t,x,x_1) = p(t)\,p_t(x)\,q_\phi(x_1 \mid x,t),
 $$
+
 and the same KL argument as in Euclidean VFM yields the RG-VFM objective
+
 $$
 \mathcal{L}_{\text{RGVFM}}(\phi)
 = -\,\mathbb{E}_{p(t,x,x_1)}\big[ \log q_\phi(x_1 \mid x,t) \big].
 $$
 
 On homogeneous manifolds (ones which 'look' the same at every point) with closed-form geodesics (such as $S^2$), this simplifies to a Fréchet-type objective
+
 $$
 \mathcal{L}_{\text{RGVFM}}(\phi)
 \propto
@@ -310,15 +339,18 @@ $$
 $$
 
 The model velocity is defined as
+
 $$
 v_\phi(x,t) = \mathbb{E}_{q_\phi}[u_t(x \mid x_1)].
 $$
 
 For the geodesic path parameterization used in the code, this leads to
+
 $$
 v_\phi(x,t)
 = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big),
 $$
+
 which mirrors the Euclidean formula $(\mu_\phi(x,t)-x)/(1-t)$ but in the tangent space $T_x \mathcal M$.
 
 **Key distinction:** RFM uses a tangent velocity loss; RG-VFM uses an endpoint geodesic loss and derives velocities via the log map.
@@ -348,7 +380,8 @@ The repository is organised around four small, self-contained scripts:
 
 - `VFM.py`  
   Euclidean Variational Flow Matching on a 2D toy dataset.  
-  Instead of predicting velocities directly, the network learns an endpoint posterior $q_\phi(x_1 \mid x,t)$ (e.g. a Gaussian with mean $\mu_\phi(x,t)$). The loss is a negative log-likelihood $-\log q_\phi(x_1 \mid x_t,t)$, and the vector field is recovered as
+  Instead of predicting velocities directly, the network learns an endpoint posterior $q_\phi(x_1 \mid x,t)$ (e.g. a Gaussian with mean $\mu_\phi(x,t)$). The loss is a negative log-likelihood $-\log q_\phi(x_1 \mid x_t,t)$, and the vector field is recovered as  
+
   $$
   v_\phi(x,t) = \frac{\mu_\phi(x,t) - x}{1-t}.
   $$
@@ -359,14 +392,18 @@ The repository is organised around four small, self-contained scripts:
 
 - `RG-VFM.py`  
   RG-VFM-style endpoint model on $S^2$.  
-  The network predicts endpoints $\mu_\phi(x_t,t) \in S^2$ along geodesic paths and is trained with an endpoint geodesic loss
+  The network predicts endpoints $\mu_\phi(x_t,t) \in S^2$ along geodesic paths and is trained with an endpoint geodesic loss  
+
   $$
   d_{S^2}\big(x_1,\mu_\phi(x_t,t)\big)^2.
   $$
-  The corresponding vector field is then defined by
+
+  The corresponding vector field is then defined by  
+
   $$
   v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big),
   $$
+
   and used to sample by integrating an ODE on the sphere via the exponential map.
 
 
@@ -398,14 +435,18 @@ The three panels show:
    Riemannian Flow Matching learns a tangent vector field $v_\theta(x,t)\in T_x S^2$ by regressing to geodesic velocities $\log_{x_t}(x_1)/(1-t)$. After a modest number of training steps, the flow already pushes a large amount of mass towards one of the modes, but samples remain comparatively diffuse over the sphere and the second mode may be only weakly expressed. This reflects the fact that the model is trained purely via a local velocity MSE in the tangent spaces.
 
 3. **RG-VFM-style samples on $S^2$.**  
-   The RG-VFM-style model predicts endpoints $\mu_\phi(x_t,t)\in S^2$ and is trained with an endpoint geodesic loss
+   The RG-VFM-style model predicts endpoints $\mu_\phi(x_t,t)\in S^2$ and is trained with an endpoint geodesic loss  
+
    $$
    d_{S^2}\big(x_1,\mu_\phi(x_t,t)\big)^2.
    $$
-   Because the two data clusters are very tight, this loss is minimised by predicting endpoints extremely close to the two pole centres. When the corresponding vector field
+
+   Because the two data clusters are very tight, this loss is minimised by predicting endpoints extremely close to the two pole centres. When the corresponding vector field  
+
    $$
    v_\phi(x,t) = \frac{1}{1-t}\,\log_x\big(\mu_\phi(x,t)\big)
    $$
+
    is integrated, most mass is transported very sharply onto these modes, so the samples appear as two highly concentrated regions near the poles.
 
 These plots are purely illustrative. They are not meant as a quantitative comparison between RFM and RG-VFM, but they show qualitatively different behaviour:
